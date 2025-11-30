@@ -1,36 +1,24 @@
-console.log("[Anti-Focus] Loaded (single-run version).");
+console.log("[Anti-Focus] Loaded with auto-reapply.");
 
-// Run only once when DOM is ready
-function onReady(callback) {
-    if (document.readyState !== "loading") {
-        callback();
-    } else {
-        document.addEventListener("DOMContentLoaded", callback);
-    }
-}
-
-onReady(() => {
+// Main function that disables focus mode
+function disableFocusMode() {
     console.log("[Anti-Focus] Disabling focus mode…");
 
-    // Remove overlays
     document.querySelectorAll("[id^='question_overlay-']").forEach(el => {
         el.style.display = "none";
         el.classList.remove("visible");
     });
 
-    // Reveal questions
     document.querySelectorAll("[id^='cadre-question-']").forEach(el => {
         el.classList.remove("invisible");
         el.style.visibility = "visible";
         el.style.opacity = 1;
     });
 
-    // Hide timers
     document.querySelectorAll("[id^='chrono-']").forEach(el => {
         el.style.display = "none";
     });
 
-    // Remove focus JS triggers
     document.querySelectorAll("[id^='cadre-formulaire-']").forEach(el => {
         el.onmouseenter = null;
         el.onmouseleave = null;
@@ -38,11 +26,9 @@ onReady(() => {
         el.removeAttribute("onmouseleave");
     });
 
-    // Remove global key handler
     document.body.removeAttribute("onkeyup");
     document.body.onkeyup = null;
 
-    // Patch q[n].activation_focus only once
     if (window.q) {
         for (const k in window.q) {
             if (window.q[k] && typeof window.q[k].activation_focus === "function") {
@@ -54,5 +40,18 @@ onReady(() => {
         }
     }
 
-    console.log("[Anti-Focus] Focus mode disabled (single run).");
+    console.log("[Anti-Focus] Focus mode disabled.");
+}
+
+// Run once on DOM ready
+disableFocusMode();
+
+// Watch for changes (when next question loads)
+const observer = new MutationObserver(() => {
+    disableFocusMode();
+});
+
+observer.observe(document.body, {
+    childList: true,
+    subtree: true
 });
